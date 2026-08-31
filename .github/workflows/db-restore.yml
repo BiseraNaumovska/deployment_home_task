@@ -1,0 +1,38 @@
+name: Database RESTORE
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_file:
+        description: 'Path to SQL file for restore (Empty for the latest backup)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  database-restore:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start PostgreSQL Service in CI
+        run: |
+          docker compose -f docker-compose/docker-compose.yml up -d postgres_db
+          until docker exec postgres_db pg_isready -U db_admin -d active_network_db; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Verify Data Count BEFORE RESTORE
+        run: |
+          docker exec postgres_db psql -U db_admin -d active_network_db -c "SELECT COUNT(*) FROM active_network_equipment;"
+
+      - name: Run Restore Script
+        run: |
+          ./docker-compose/restore.sh "${{ github.event.inputs.backup_file }}"
+
+      - name: Verify Data Count AFTER RESTORE
+        run: |
+          docker exec postgres_db psql -U db_admin -d active_network_db -c "SELECT COUNT(*) FROM active_network_equipment;"
