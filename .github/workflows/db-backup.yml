@@ -1,0 +1,43 @@
+name: Database BACKUP
+
+on:
+  # schedule:
+  #   - cron: '0 0 * * *' # every day at midnight UTC
+
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Backup type (full or schema_only)'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - schema_only
+
+jobs:
+  database-backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start PostgreSQL Service in CI
+        run: |
+          docker compose -f docker-compose/docker-compose.yml up -d postgres_db
+          until docker exec postgres_db pg_isready -U db_admin -d active_network_db; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Run Backup Script
+        run: |
+          ./docker-compose/backup.sh "${{ github.event.inputs.backup_type || 'full' }}"
+
+      - name: Upload Backup Artifact to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-backup-${{ github.run_id }}
+          path: backups/
+          retention-days: 7
