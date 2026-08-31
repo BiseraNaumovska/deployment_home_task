@@ -1,0 +1,18 @@
+groups:
+  - name: server_alerts
+    rules:
+      - alert: HighCpuUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CPU usage above 80%"
+
+      - alert: WebserverDown
+        expr: probe_success == 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: "Nginx Webserver is unreachable!"
