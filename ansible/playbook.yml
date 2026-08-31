@@ -1,0 +1,47 @@
+---
+- name: Deploy and Secure Remote Server Stack
+  hosts: remote_server
+  become: true
+  vars:
+    project_dir: "{{ playbook_dir }}/../docker-compose"
+
+  tasks:
+    # -------------------------------------------------------------
+    # 1. REQUIREMENT 6: SSH Security
+    # -------------------------------------------------------------
+    - name: Check if SSH config file exists
+      stat:
+        path: /etc/ssh/sshd_config
+      register: sshd_config_file
+
+    - name: Disable SSH Password Authentication for security
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present
+      when: sshd_config_file.stat.exists
+      notify: Restart SSH
+
+    - name: Ensure PermitRootLogin relies on keys
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin prohibit-password'
+        state: present
+      when: sshd_config_file.stat.exists
+      notify: Restart SSH
+
+    # -------------------------------------------------------------
+    # 2. REQUIREMENT 1, 2, 7 & 9: Deploy Services via Compose
+    # -------------------------------------------------------------
+    - name: Deploy Docker Compose Stack (Web, DB, Prometheus, Grafana, Node Exporter)
+      command: docker compose up -d
+      args:
+        chdir: "{{ project_dir }}"
+
+  handlers:
+    - name: Restart SSH
+      service:
+        name: ssh
+        state: restarted

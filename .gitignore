@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+docker-compose/nginx/ssl/*.key
+docker-compose/nginx/ssl/*.crt
+docker-compose/backups/
+.DS_Store
