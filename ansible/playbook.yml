@@ -6,9 +6,6 @@
     project_dir: "{{ playbook_dir }}/../docker-compose"
 
   tasks:
-    # -------------------------------------------------------------
-    # 1. REQUIREMENT 6: SSH Security
-    # -------------------------------------------------------------
     - name: Check if SSH config file exists
       stat:
         path: /etc/ssh/sshd_config
@@ -32,9 +29,6 @@
       when: sshd_config_file.stat.exists
       notify: Restart SSH
 
-    # -------------------------------------------------------------
-    # 2. REQUIREMENT 1, 2, 7 & 9: Deploy Services via Compose
-    # -------------------------------------------------------------
     - name: Deploy Docker Compose Stack (Web, DB, Prometheus, Grafana, Node Exporter)
       command: docker compose up -d
       args:

@@ -10,4 +10,5 @@ Each step will represent separate work of the task.
 3. Create database
 4. Create http index.html
 5. Create https index.html
-6. 
+6. playbook.yaml
+7. deployment and service 
