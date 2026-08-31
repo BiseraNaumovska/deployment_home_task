@@ -1,0 +1,39 @@
+name: Infrastructure Validation
+
+on:           # for testing, you can uncomment the following lines to trigger the workflow on push or pull request events
+              # now , it is set to be triggered manually via workflow_dispatch
+              # because I do not want to spend the minutes from my free github account
+  # push:
+  #   branches: [ main, master ] # + develop if exists for lower environments
+  #pull_request:
+  #  branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible-Lint and Helm
+        run: |
+          pip install ansible-lint
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Validate Ansible Playbook Syntax
+        run: |
+          ansible-playbook -i ansible/inventory/hosts.ini ansible/playbook.yml --syntax-check
+
+      - name: Lint Helm Chart
+        run: |
+          helm lint helm/webserver-chart
+
+      - name: Validate Kubernetes Manifests
+        run: |
+          kubectl apply --dry-run=client -f k8s/
