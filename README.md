@@ -14,3 +14,5 @@ Each step will represent separate work of the task.
 7. deployment and service 
 
 testing verisoning
+
+testing verisoning 2
