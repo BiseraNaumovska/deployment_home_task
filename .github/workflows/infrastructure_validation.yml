@@ -34,6 +34,9 @@ jobs:
         run: |
           helm lint helm/webserver-chart
 
+      - name: Create Kubernetes Cluster (Kind)
+        uses: helm/kind-action@v1.8.0
+
       - name: Validate Kubernetes Manifests
         run: |
           kubectl apply --dry-run=client -f k8s/
