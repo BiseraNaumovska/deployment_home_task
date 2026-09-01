@@ -1,0 +1,36 @@
+name: New PROD Release version (developt -> main)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote-and-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git User
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge Develop into Main
+        run: |
+          git checkout main
+          git merge origin/develop --ff-only
+          git push origin main
+
+      - name: Generate and Push Timestamped Tag
+        run: |
+          TAG_NAME="prod.$(date +'%Y.%m.%d.%H.%M')"
+          echo "Generated tag: $TAG_NAME"
+          
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
