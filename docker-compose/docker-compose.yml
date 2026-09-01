@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: active_network_db
       POSTGRES_USER: db_admin
-      POSTGRES_PASSWORD: SecurePassword123!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -46,6 +46,7 @@ services:
     container_name: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
@@ -57,11 +58,23 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
     volumes:
       - grafana_data:/var/lib/grafana
     restart: always
 
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: always
+    ports:
+      - "9093:9093"
+    environment:
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      
 volumes:
   postgres_data:
   prometheus_data:
