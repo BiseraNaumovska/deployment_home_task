@@ -12,3 +12,5 @@ Each step will represent separate work of the task.
 5. Create https index.html
 6. playbook.yaml
 7. deployment and service 
+
+testing verisoning
