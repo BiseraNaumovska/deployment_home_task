@@ -4,7 +4,42 @@ global:
 rule_files:
   - "alert.rules.yml"
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
 scrape_configs:
   - job_name: 'node_exporter'
     static_configs:
       - targets: ['node_exporter:9100']
+
+  - job_name: 'blackbox_http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://webserver:80
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
+
+  - job_name: 'blackbox_https'
+    metrics_path: /probe
+    params:
+      module: [https_2xx_insecure]
+    static_configs:
+      - targets:
+          - https://webserver:443
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115

@@ -1,0 +1,17 @@
+---
+- name: Ensure remote project directory exists
+  ansible.builtin.file:
+    path: "{{ remote_compose_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy Docker Compose stack to remote host
+  ansible.builtin.copy:
+    src: "{{ local_compose_dir }}/"
+    dest: "{{ remote_compose_dir }}/"
+    mode: preserve
+
+- name: Deploy Docker Compose stack
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: "{{ remote_compose_dir }}"

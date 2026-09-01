@@ -1,9 +1,10 @@
 ---
 - name: Deploy and Secure Remote Server Stack
-  hosts: remote_server
+  hosts: "{{ target_group | default('remote_server') }}"
   become: true
   vars:
-    project_dir: "{{ playbook_dir }}/../docker-compose"
+    local_compose_dir: "{{ playbook_dir }}/../docker-compose"
+    remote_compose_dir: "/opt/deployment_home_task/docker-compose"
 
   tasks:
     - name: Check if SSH config file exists
@@ -29,10 +30,36 @@
       when: sshd_config_file.stat.exists
       notify: Restart SSH
 
-    - name: Deploy Docker Compose Stack (Web, DB, Prometheus, Grafana, Node Exporter)
+    - name: Install Docker runtime packages
+      apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Ensure Docker service is enabled and running
+      service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Ensure remote project directory exists
+      file:
+        path: "{{ remote_compose_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Docker Compose stack to remote host
+      copy:
+        src: "{{ local_compose_dir }}/"
+        dest: "{{ remote_compose_dir }}/"
+        mode: preserve
+
+    - name: Deploy Docker Compose stack
       command: docker compose up -d
       args:
-        chdir: "{{ project_dir }}"
+        chdir: "{{ remote_compose_dir }}"
 
   handlers:
     - name: Restart SSH

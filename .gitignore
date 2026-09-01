@@ -8,3 +8,8 @@ docker-compose/backups/
 .env
 .env
 docker-compose/.env
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate
+*.tfstate.backup
+.terraform/

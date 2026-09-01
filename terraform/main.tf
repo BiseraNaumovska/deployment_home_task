@@ -24,6 +24,10 @@ resource "docker_container" "devops_vps" {
   name  = "DevOps-HomeTask-VPS"
   image = docker_image.ubuntu_server.image_id
 
+  env = [
+    "SSH_PUBLIC_KEY=${trimspace(file(pathexpand("~/.ssh/id_rsa.pub")))}"
+  ]
+
   # SSH Port
   ports {
     internal = 22
@@ -59,7 +63,7 @@ resource "docker_container" "devops_vps" {
   }
 
   # Initial server setup script
-  command = ["/bin/bash", "-c", "apt-get update && apt-get install -y openssh-server curl && tail -f /dev/null"]
+  command = ["/bin/bash", "-c", "apt-get update && apt-get install -y openssh-server curl && mkdir -p /run/sshd /root/.ssh && printf '%s\n' \"$SSH_PUBLIC_KEY\" > /root/.ssh/authorized_keys && chmod 700 /root/.ssh && chmod 600 /root/.ssh/authorized_keys && /usr/sbin/sshd -D"]
 }
 
 output "vps_container_name" {
