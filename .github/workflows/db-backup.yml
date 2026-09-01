@@ -24,6 +24,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Start PostgreSQL Service in CI
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          SMTP_FROM_EMAIL: ${{ secrets.SMTP_FROM_EMAIL }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: |
           docker compose -f docker-compose/docker-compose.yml up -d postgres_db
           until docker exec postgres_db pg_isready -U db_admin -d active_network_db; do
@@ -32,6 +37,8 @@ jobs:
           done
 
       - name: Run Backup Script
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           ./docker-compose/backup.sh "${{ github.event.inputs.backup_type || 'full' }}"
 
