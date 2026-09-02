@@ -44,7 +44,7 @@ The repository is structured into two main environments:
 ---
 
 ## Repository Structure
-
+```text
 deployment_home_task/
 ├── .env
 ├── .gitignore
@@ -146,7 +146,7 @@ deployment_home_task/
     ├── main.tf
     ├── terraform.tfstate
     └── terraform.tfstate.backup
-
+```
 
 ## Most Important Files and What They Do
 
